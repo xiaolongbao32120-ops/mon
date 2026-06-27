@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>ระบบแยกข้อมูลสินค้า</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom, #ffdfd3 0%, #ffc8b4 40%, #e0ece4 70%, #b8d7c3 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        .sun {
+            position: absolute;
+            top: 10%;
+            left: 25%;
+            width: 120px;
+            height: 120px;
+            background-color: #ff6b6b;
+            border-radius: 50%;
+            opacity: 0.8;
+            z-index: 1;
+        }
+        .landscape-bg {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 35vh;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .mountain {
+            position: absolute;
+            bottom: 0;
+            border-style: solid;
+        }
+        .volcano {
+            left: 15%;
+            bottom: 0;
+            width: 0;
+            height: 0;
+            border-left: 200px solid transparent;
+            border-right: 200px solid transparent;
+            border-bottom: 220px solid #756c7a;
+            opacity: 0.9;
+        }
+        .volcano-tip {
+            position: absolute;
+            left: 15%;
+            bottom: 180px;
+            width: 0;
+            height: 0;
+            border-left: 36px solid transparent;
+            border-right: 36px solid transparent;
+            border-bottom: 40px solid #ff6b6b;
+            transform: translateX(164px);
+        }
+        .mountain-1 {
+            right: 10%;
+            border-left: 250px solid transparent;
+            border-right: 250px solid transparent;
+            border-bottom: 260px solid #8fa89b;
+            opacity: 0.7;
+        }
+        .mountain-2 {
+            right: -5%;
+            border-left: 200px solid transparent;
+            border-right: 200px solid transparent;
+            border-bottom: 180px solid #a3bdae;
+            opacity: 0.8;
+        }
+        .dino-track {
+            position: fixed;
+            bottom: 20px;
+            width: 100%;
+            height: 60px;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .dino {
+            position: absolute;
+            font-size: 32px;
+            bottom: 0;
+        }
+        .dino-right-1 { animation: walkRight 18s linear infinite; bottom: 5px; }
+        .dino-right-2 { animation: walkRight 14s linear infinite; animation-delay: 3s; bottom: 15px; font-size: 26px; opacity: 0.9; }
+        .dino-right-3 { animation: walkRight 22s linear infinite; animation-delay: 7s; bottom: 0px; font-size: 38px; }
+        .dino-left-1 { animation: walkLeft 16s linear infinite; animation-delay: 1s; bottom: 8px; transform: scaleX(-1); }
+        .dino-left-2 { animation: walkLeft 20s linear infinite; animation-delay: 5s; bottom: 2px; font-size: 35px; transform: scaleX(-1); }
+        @keyframes walkRight {
+            0% { left: -100px; }
+            100% { left: 105%; }
+        }
+        @keyframes walkLeft {
+            0% { right: -100px; }
+            100% { right: 105%; }
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 45px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            width: 90%;
+            max-width: 950px;
+            text-align: center;
+            z-index: 10;
+            margin-bottom: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        h2 {
+            margin-bottom: 25px;
+            color: #4a5568;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .upload-btn {
+            background-color: #5a7365;
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(90, 115, 101, 0.2);
+            display: inline-block;
+        }
+        .upload-btn:hover {
+            background-color: #41544a;
+            transform: translateY(-2px);
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .action-buttons {
+            margin-top: 25px;
+        }
+        .download-btn {
+            background-color: #e29578;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            display: none;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(226, 149, 120, 0.2);
+        }
+        .download-btn:hover {
+            background-color: #dd7d57;
+            transform: translateY(-2px);
+        }
+        .table-wrapper {
+            margin-top: 35px;
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.02);
+            background: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th, td {
+            padding: 14px 18px;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f7fafc;
+            color: #718096;
+            font-weight: 600;
+        }
+        tr:hover {
+            background-color: #f7fafc;
+        }
+    </style>
+</head>
+<body>
+    <div class="sun"></div>
+    <div class="landscape-bg">
+        <div class="mountain volcano"></div>
+        <div class="volcano-tip"></div>
+        <div class="mountain mountain-1"></div>
+        <div class="mountain mountain-2"></div>
+    </div>
+    <div class="dino-track">
+        <div class="dino dino-right-1">🦖</div>
+        <div class="dino dino-right-2">🦕</div>
+        <div class="dino dino-right-3">🦖</div>
+        <div class="dino dino-left-1">🦕</div>
+        <div class="dino dino-left-2">🦖</div>
+    </div>
+    <div class="container">
+        <h2>ระบบแยกข้อมูลสินค้า</h2>
+        <label for="excelFile" class="upload-btn">เลือกไฟล์ Excel</label>
+        <input type="file" id="excelFile" accept=".xlsx, .xls">
+        <div class="action-buttons">
+            <button id="downloadBtn" class="download-btn">ดาวน์โหลด Excel ใหม่</button>
+        </div>
+        <div class="table-wrapper" id="tableContainer"></div>
+    </div>
+    <script>
+        let processedData = [];
+        let originalHeaders = [];
+        document.getElementById('excelFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                parseAndDisplayData(json);
+            };
+            reader.readAsArrayBuffer(file);
+        });
+        function parseAndDisplayData(data) {
+            if (!data || data.length === 0) return;
+            originalHeaders = data[0];
+            const productIndex = originalHeaders.indexOf('สินค้า');
+            if (productIndex === -1) {
+                alert('ไม่พบคอลัมน์ "สินค้า" ในไฟล์ Excel');
+                return;
+            }
+            processedData = [];
+            const newHeaders = [...originalHeaders];
+            newHeaders.splice(productIndex + 1, 0, 'ชื่อสินค้า');
+            newHeaders.splice(productIndex + 1, 0, 'รหัสสินค้า');
+            processedData.push(newHeaders);
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                if (!row || row.length === 0) continue;
+                const cellValue = row[productIndex] !== undefined && row[productIndex] !== null ? row[productIndex].toString().trim() : '';
+                let code = '';
+                let name = '';
+                if (cellValue) {
+                    const parts = cellValue.split(/\s+/);
+                    code = parts[0] || '';
+                    name = parts.slice(1).join(' ') || '';
+                }
+                const newRow = [...row];
+                newRow.splice(productIndex + 1, 0, name);
+                newRow.splice(productIndex + 1, 0, code);
+                processedData.push(newRow);
+            }
+            displayTable(processedData);
+            document.getElementById('downloadBtn').style.display = 'inline-block';
+        }
+        function displayTable(data) {
+            let tableHTML = '<table>';
+            tableHTML += '<tr>';
+            for (let h = 0; h < data[0].length; h++) {
+                tableHTML += <th>${data[0][h] || ''}</th>;
+            }
+            tableHTML += '</tr>';
+            for (let i = 1; i < data.length; i++) {
+                tableHTML += '<tr>';
+                for (let j = 0; j < data[i].length; j++) {
+                    tableHTML += <td>${data[i][j] || ''}</td>;
+                }
+                tableHTML += '</tr>';
+            }
+            tableHTML += '</table>';
+            document.getElementById('tableContainer').innerHTML = tableHTML;
+        }
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            if (processedData.length === 0) return;
+            const ws = XLSX.utils.aoa_to_sheet(processedData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "สินค้าที่แยกแล้ว");
+            XLSX.writeFile(wb, "processed_products.xlsx");
+        });
+    </script>
+</body>
+</html>
