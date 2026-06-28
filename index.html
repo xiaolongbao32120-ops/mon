@@ -1,338 +1,97 @@
-
+<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบแยกข้อมูลสินค้าน้ำมัน</title>
-    <!-- นำเข้าฟอนต์มินิมอล (Prompt) จาก Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
     <style>
-        body {
-            font-family: 'Prompt', sans-serif;
-            margin: 0;
-            padding: 40px 20px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: #2d3436;
-            overflow-x: hidden;
-        }
-
-        /* --- Minimalist Background Elements --- */
-        .sky {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(to bottom, #e0f2fe 0%, #fdfbfb 100%);
-            z-index: -5;
-        }
-        .sun {
-            position: fixed;
-            top: 15%; right: 20%;
-            width: 80px; height: 80px;
-            background-color: #fef08a;
-            border-radius: 50%;
-            box-shadow: 0 0 50px rgba(254, 240, 138, 0.8);
-            z-index: -4;
-        }
-        .mountain-back {
-            position: fixed;
-            bottom: -5vh; left: -10vw;
-            width: 65vw; height: 40vh;
-            background-color: #d4e1db;
-            border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-            z-index: -3;
-        }
-        .mountain-front {
-            position: fixed;
-            bottom: -8vh; right: -15vw;
-            width: 80vw; height: 35vh;
-            background-color: #c3d6d0;
-            border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-            z-index: -2;
-        }
-        .ground {
-            position: fixed;
-            bottom: 0; left: 0;
-            width: 100%; height: 12vh;
-            background-color: #b5c7c1;
-            z-index: -1;
-        }
-
-        /* --- Cute Dinosaur Animation --- */
-        .dino-scene {
-            position: fixed;
-            bottom: 10vh;
-            left: 0;
-            width: 100%;
-            z-index: 0;
-            pointer-events: none;
-        }
-        .dino-wrapper {
-            position: absolute;
-            bottom: 0;
-            display: flex;
-            align-items: flex-end;
-            gap: 30px;
-            animation: runAcross 18s linear infinite;
-        }
-        .dino {
-            font-size: 3.5rem;
-            animation: wiggle 0.35s ease-in-out infinite alternate;
-            user-select: none;
-        }
-        .dino:nth-child(2) {
-            animation-delay: 0.15s;
-            font-size: 4rem; /* ให้ทีเร็กซ์ตัวใหญ่กว่านิดนึง */
-        }
-
-        /* วิ่งจากขวาไปซ้าย */
-        @keyframes runAcross {
-            0% { transform: translateX(110vw); }
-            100% { transform: translateX(-40vw); }
-        }
-        /* อาการวิ่งดุ๊กดิ๊ก */
-        @keyframes wiggle {
-            0% { transform: translateY(0) rotate(-6deg); }
-            100% { transform: translateY(-15px) rotate(8deg); }
-        }
-
-        /* --- Main Content Box (Glassmorphism) --- */
-        .container {
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 40px;
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
-            width: 100%;
-            max-width: 900px;
-            text-align: center;
-            box-sizing: border-box;
-            z-index: 10;
-            position: relative;
-        }
-        
-        h2 {
-            margin-top: 0;
-            margin-bottom: 30px;
-            color: #2d3436;
-            font-weight: 400;
-            font-size: 26px;
-            letter-spacing: 0.5px;
-        }
-
-        /* --- Minimalist Buttons --- */
-        .upload-btn, .download-btn {
-            font-family: 'Prompt', sans-serif;
-            background-color: #2d3436;
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 300;
-            transition: all 0.3s ease;
-            display: inline-block;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .upload-btn:hover {
-            background-color: #000;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-        }
-        input[type="file"] {
-            display: none;
-        }
-        .action-buttons {
-            margin-top: 25px;
-        }
-        .download-btn {
-            background-color: #ffffff;
-            color: #2d3436;
-            border: 1px solid #dfe6e9;
-            display: none;
-            margin-left: 10px;
-        }
-        .download-btn:hover {
-            background-color: #f5f6fa;
-            transform: translateY(-2px);
-        }
-
-        /* --- Minimalist Table --- */
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-            margin-top: 35px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            min-width: 600px;
-        }
-        th, td {
-            padding: 14px 16px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            font-size: 15px;
-        }
-        th {
-            font-weight: 500;
-            color: #636e72;
-            border-bottom: 2px solid #2d3436;
-            white-space: nowrap;
-        }
-        tr {
-            transition: background-color 0.2s;
-        }
-        tr:hover td {
-            background-color: rgba(255, 255, 255, 0.6);
-        }
-        
-        @media (max-width: 600px) {
-            .upload-btn, .download-btn {
-                display: block;
-                width: 100%;
-                margin: 10px 0;
-                box-sizing: border-box;
-            }
-            .download-btn {
-                margin-left: 0;
-            }
-            .container {
-                padding: 25px 20px;
-            }
-        }
+        body { font-family: 'Prompt', sans-serif; margin: 0; padding: 40px 20px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; color: #2d3436; overflow-x: hidden; }
+        .sky { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, #e0f2fe 0%, #fdfbfb 100%); z-index: -5; }
+        .container { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(12px); padding: 40px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04); width: 100%; max-width: 1000px; text-align: center; z-index: 10; position: relative; }
+        h2 { margin: 0 0 30px; font-weight: 400; font-size: 26px; }
+        .upload-btn, .download-btn { font-family: 'Prompt', sans-serif; background-color: #2d3436; color: white; padding: 12px 30px; border: none; border-radius: 50px; cursor: pointer; font-size: 16px; transition: all 0.3s; display: inline-block; }
+        .upload-btn:hover { background-color: #000; transform: translateY(-2px); }
+        input[type="file"] { display: none; }
+        .download-btn { background-color: #ffffff; color: #2d3436; border: 1px solid #dfe6e9; display: none; margin-left: 10px; }
+        .table-responsive { width: 100%; overflow-x: auto; margin-top: 35px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 800px; }
+        th, td { padding: 12px; border-bottom: 1px solid rgba(0, 0, 0, 0.05); font-size: 14px; }
+        th { font-weight: 500; color: #636e72; border-bottom: 2px solid #2d3436; }
     </style>
 </head>
 <body>
-
-    <!-- Minimalist Scenery Background -->
     <div class="sky"></div>
-    <div class="sun"></div>
-    <div class="mountain-back"></div>
-    <div class="mountain-front"></div>
-    <div class="ground"></div>
-
-    <!-- Animated Dinosaurs -->
-    <div class="dino-scene">
-        <div class="dino-wrapper">
-            <div class="dino">🦕</div>
-            <div class="dino">🦖</div>
-        </div>
-    </div>
-
-    <!-- Main App Container -->
     <div class="container">
         <h2>ระบบแยกข้อมูลสินค้า</h2>
         <label for="excelFile" class="upload-btn">เลือกไฟล์ Excel</label>
         <input type="file" id="excelFile" accept=".xlsx, .xls">
-        
-        <div class="action-buttons">
-            <button id="downloadBtn" class="download-btn">ดาวน์โหลด Excel ใหม่</button>
-        </div>
-
+        <button id="downloadBtn" class="download-btn">ดาวน์โหลด Excel ใหม่</button>
         <div class="table-responsive" id="tableContainer"></div>
     </div>
 
     <script>
-        // --- ส่วนการทำงาน (JavaScript) ของเดิม 100% ---
         let processedData = [];
-        let originalHeaders = [];
 
         document.getElementById('excelFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-                parseAndDisplayData(json);
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+                parseData(json);
             };
             reader.readAsArrayBuffer(file);
         });
 
-        function parseAndDisplayData(data) {
-            if (!data || data.length === 0) return;
-
-            originalHeaders = data[0];
-            const productIndex = originalHeaders.indexOf('สินค้า');
+        function parseData(data) {
+            if (!data || data.length < 2) return;
+            const headers = data[0];
+            const pIdx = headers.indexOf('สินค้า');
             
-            if (productIndex === -1) {
-                alert('ไม่พบคอลัมน์ "สินค้า" ในไฟล์ Excel');
-                return;
-            }
-
             processedData = [];
-            
-            const newHeaders = [...originalHeaders];
-            newHeaders.splice(productIndex + 1, 0, 'ชื่อสินค้า');
-            newHeaders.splice(productIndex + 1, 0, 'รหัสสินค้า');
+            let newHeaders = [...headers];
+            newHeaders.splice(pIdx + 1, 0, 'ชื่อสินค้า', 'รหัสสินค้า');
+            newHeaders[9] = 'รวมข้อมูล'; // คอลัมน์ J
             processedData.push(newHeaders);
 
             for (let i = 1; i < data.length; i++) {
-                const row = data[i];
-                if (!row || row.length === 0) continue;
-
-                const cellValue = row[productIndex] !== undefined && row[productIndex] !== null ? row[productIndex].toString().trim() : '';
+                let row = [...data[i]];
                 
-                let code = '';
-                let name = '';
+                // 1. แยกสินค้า
+                const cellValue = row[pIdx] ? row[pIdx].toString().trim() : '';
+                const parts = cellValue.split(/\s+/);
+                const code = parts[0] || '';
+                const name = parts.slice(1).join(' ') || '';
+                row.splice(pIdx + 1, 0, name, code);
 
-                if (cellValue) {
-                    const parts = cellValue.split(/\s+/);
-                    code = parts[0] || '';
-                    name = parts.slice(1).join(' ') || '';
-                }
+                // 2. รวมคอลัมน์ D (index 3) และ E (index 4) ไปไว้ที่ index 9
+                const colD = row[3] ? row[3].toString().trim() : '';
+                const colE = row[4] ? row[4].toString().trim() : '';
+                row[9] = colD + " " + colE;
 
-                const newRow = [...row];
-                newRow.splice(productIndex + 1, 0, name);
-                newRow.splice(productIndex + 1, 0, code);
-                
-                processedData.push(newRow);
+                processedData.push(row);
             }
-
             displayTable(processedData);
             document.getElementById('downloadBtn').style.display = 'inline-block';
         }
 
         function displayTable(data) {
-            let tableHTML = '<table>';
-            
-            tableHTML += '<tr>';
-            for (let h = 0; h < data[0].length; h++) {
-                tableHTML += `<th>${data[0][h] || ''}</th>`;
-            }
-            tableHTML += '</tr>';
-
+            let html = '<table><tr>' + data[0].map(h => `<th>${h}</th>`).join('') + '</tr>';
             for (let i = 1; i < data.length; i++) {
-                tableHTML += '<tr>';
-                for (let j = 0; j < data[i].length; j++) {
-                    tableHTML += `<td>${data[i][j] || ''}</td>`;
-                }
-                tableHTML += '</tr>';
+                html += '<tr>' + data[i].map(c => `<td>${c || ''}</td>`).join('') + '</tr>';
             }
-            tableHTML += '</table>';
-            document.getElementById('tableContainer').innerHTML = tableHTML;
+            document.getElementById('tableContainer').innerHTML = html + '</table>';
         }
 
-        document.getElementById('downloadBtn').addEventListener('click', function() {
-            if (processedData.length === 0) return;
-
-            const ws = XLSX.utils.aoa_to_sheet(processedData);
+        document.getElementById('downloadBtn').addEventListener('click', () => {
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "สินค้าที่แยกแล้ว");
-            XLSX.writeFile(wb, "processed_products.xlsx");
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(processedData), "Sheet1");
+            XLSX.writeFile(wb, "updated_products.xlsx");
         });
     </script>
-
 </body>
 </html>
