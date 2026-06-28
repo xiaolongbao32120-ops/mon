@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="th">
 <head>
     <meta charset="UTF-8">
@@ -34,6 +34,14 @@
     <script>
         let processedData = [];
 
+        function formatPhoneNumber(phone) {
+            let str = phone ? phone.toString().trim() : '';
+            if (str.length === 9) {
+                return '0' + str;
+            }
+            return str;
+        }
+
         document.getElementById('excelFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -55,23 +63,27 @@
             processedData = [];
             let newHeaders = [...headers];
             newHeaders.splice(pIdx + 1, 0, 'ชื่อสินค้า', 'รหัสสินค้า');
-            newHeaders[9] = 'รวมข้อมูล'; // คอลัมน์ J
+            newHeaders[9] = 'รวมข้อมูล'; 
             processedData.push(newHeaders);
 
             for (let i = 1; i < data.length; i++) {
                 let row = [...data[i]];
                 
-                // 1. แยกสินค้า
+                // แยกสินค้า
                 const cellValue = row[pIdx] ? row[pIdx].toString().trim() : '';
                 const parts = cellValue.split(/\s+/);
                 const code = parts[0] || '';
                 const name = parts.slice(1).join(' ') || '';
                 row.splice(pIdx + 1, 0, name, code);
 
-                // 2. รวมคอลัมน์ D (index 3) และ E (index 4) ไปไว้ที่ index 9
+                // ดึงข้อมูลและปรับเบอร์โทร
+                const colC = row[2] ? row[2].toString().trim() : '';
                 const colD = row[3] ? row[3].toString().trim() : '';
-                const colE = row[4] ? row[4].toString().trim() : '';
-                row[9] = colD + " " + colE;
+                const colE = formatPhoneNumber(row[4]); // ปรับเบอร์โทรที่ index 4
+                row[4] = colE; 
+                
+                // รวมข้อมูลด้วย B2B
+                row[9] = `B2B ${colC} ${colD} ${colE}`.trim();
 
                 processedData.push(row);
             }
