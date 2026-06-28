@@ -24,7 +24,7 @@
 <body>
     <div class="sky"></div>
     <div class="container">
-        <h2>ระบบแยกข้อมูลสินค้า</h2>
+        <h2>แยกข้อมูลสินค้าน้ำมัน</h2>
         <label for="excelFile" class="upload-btn">เลือกไฟล์ Excel</label>
         <input type="file" id="excelFile" accept=".xlsx, .xls">
         <button id="downloadBtn" class="download-btn">ดาวน์โหลด Excel ใหม่</button>
@@ -63,7 +63,7 @@
             processedData = [];
             let newHeaders = [...headers];
             newHeaders.splice(pIdx + 1, 0, 'ชื่อสินค้า', 'รหัสสินค้า');
-            newHeaders[9] = 'รวมข้อมูล'; 
+            newHeaders[9] = 'หมายเหตุ'; 
             processedData.push(newHeaders);
 
             for (let i = 1; i < data.length; i++) {
